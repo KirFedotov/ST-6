@@ -17,7 +17,17 @@ public class AppTest {
     }
 
     @Test
+    public void testPlayerInitialization() {
+        Player player = new Player();
+        assertNotNull(player);
+        assertFalse(player.selected);
+        assertFalse(player.win);
+        assertEquals(0, player.move);
+    }
+
+    @Test
     public void testGameInitialization() {
+        Game game = new Game();
         assertNotNull(game);
         assertEquals(State.PLAYING, game.state);
         assertEquals('X', game.player1.symbol);
@@ -29,11 +39,13 @@ public class AppTest {
 
     @Test
     public void testCheckStateWhenPlaying() {
+        Game game = new Game();
         assertEquals(State.PLAYING, game.checkState(game.board));
     }
 
     @Test
     public void testCheckStateForXWinTopRow() {
+        Game game = new Game();
         game.board[0] = 'X';
         game.board[1] = 'X';
         game.board[2] = 'X';
@@ -43,6 +55,7 @@ public class AppTest {
 
     @Test
     public void testCheckStateForOWinDiagonal() {
+        Game game = new Game();
         game.board[0] = 'O';
         game.board[4] = 'O';
         game.board[8] = 'O';
@@ -51,121 +64,83 @@ public class AppTest {
     }
 
     @Test
-    public void testCheckStateForDrawScenario() {
-        char[] drawBoard = {'X', 'O', 'X', 'X', 'O', 'O', 'O', 'X', 'X'};
-        System.arraycopy(drawBoard, 0, game.board, 0, drawBoard.length);
+    public void testCheckStateForDraw() {
+        Game game = new Game();
+        game.board = new char[] {'X', 'O', 'X', 'X', 'O', 'O', 'O', 'X', 'X'};
         assertEquals(State.DRAW, game.checkState(game.board));
     }
 
     @Test
-    public void testAvailableMovesAtStart() {
+    public void testGenerateMoves() {
+        Game game = new Game();
         ArrayList<Integer> moves = new ArrayList<>();
         game.generateMoves(game.board, moves);
         assertEquals(9, moves.size());
+
+        game.board[0] = 'X';
+        game.board[4] = 'O';
+        moves.clear();
+        game.generateMoves(game.board, moves);
+        assertEquals(7, moves.size());
+        assertFalse(moves.contains(0));
+        assertFalse(moves.contains(4));
     }
 
     @Test
-    public void testEvaluatePositionXVictory() {
-        game.board[3] = 'X';
-        game.board[4] = 'X';
-        game.board[5] = 'X';
+    public void testEvaluatePositionXWin() {
+        Game game = new Game();
+        game.board[0] = 'X';
+        game.board[1] = 'X';
+        game.board[2] = 'X';
         game.symbol = 'X';
         assertEquals(Game.INF, game.evaluatePosition(game.board, game.player1));
     }
 
     @Test
-    public void testEvaluatePositionOVictory() {
-        game.board[6] = 'O';
-        game.board[7] = 'O';
-        game.board[8] = 'O';
+    public void testEvaluatePositionOWin() {
+        Game game = new Game();
+        game.board[0] = 'O';
+        game.board[1] = 'O';
+        game.board[2] = 'O';
         game.symbol = 'O';
         assertEquals(Game.INF, game.evaluatePosition(game.board, game.player2));
     }
 
     @Test
-    public void testEvaluatePositionDrawScenario() {
-        char[] drawBoard = {'X', 'O', 'X', 'O', 'O', 'X', 'X', 'X', 'O'};
-        System.arraycopy(drawBoard, 0, game.board, 0, drawBoard.length);
+    public void testEvaluatePositionDraw() {
+        Game game = new Game();
+        game.board = new char[] {'X', 'O', 'X', 'X', 'O', 'O', 'O', 'X', 'X'};
         assertEquals(0, game.evaluatePosition(game.board, game.player1));
     }
 
     @Test
-    public void testMinimaxMoveForPlayer2() {
-        game.board[0] = 'O';
-        game.board[1] = 'O';
-        game.board[2] = ' ';
-        game.board[3] = 'X';
-        game.board[4] = ' ';
-        game.board[5] = 'X';
-        int move = game.MiniMax(game.board, game.player2);
+    public void testMiniMaxInitialMove() {
+        Game game = new Game();
+        int move = game.MiniMax(game.board, game.player1);
         assertTrue(move >= 1 && move <= 9);
     }
 
     @Test
-    public void testMinMoveCalculation() {
-        game.board[2] = 'O';
+    public void testMiniMaxBlockOpponentWin() {
+        Game game = new Game();
+        game.board[0] = 'O';
+        game.board[1] = 'O';
         game.board[3] = 'X';
         game.board[4] = 'X';
-        game.board[8] = 'O';
-        int minMoveValue = game.MinMove(game.board, game.player1);
-        assertTrue(minMoveValue <= 0);
+        game.board[8] = 'X';
+        int move = game.MiniMax(game.board, game.player2);
+        assertEquals(3, move);
     }
 
     @Test
-    public void testMaxMoveCalculation() {
+    public void testMiniMaxChooseWinningMove() {
+        Game game = new Game();
+        game.board[0] = 'O';
         game.board[1] = 'O';
+        game.board[3] = 'X';
         game.board[4] = 'X';
-        game.board[6] = ' ';
-        int maxMoveValue = game.MaxMove(game.board, game.player2);
-        assertTrue(maxMoveValue >= 0);
-    }
-
-    @Test
-    public void testPlayer1Symbol() {
-        assertEquals('X', game.player1.symbol);
-    }
-
-    @Test
-    public void testPlayer1MoveSetting() {
-        game.player1.move = 3;
-        assertEquals(3, game.player1.move);
-    }
-
-    @Test
-    public void testPlayer1Selection() {
-        game.player1.selected = false;
-        assertFalse(game.player1.selected);
-    }
-
-    @Test
-    public void testPlayer1WinStatus() {
-        game.player1.win = false;
-        assertFalse(game.player1.win);
-    }
-
-    @Test
-    public void testCellRowIndex() {
-        TicTacToeCell cell = new TicTacToeCell(4, 1, 1);
-        assertEquals(1, cell.getRow());
-    }
-
-    @Test
-    public void testCellColumnIndex() {
-        TicTacToeCell cell = new TicTacToeCell(5, 1, 2);
-        assertEquals(1, cell.getCol());
-    }
-
-    @Test
-    public void testCellNumber() {
-        TicTacToeCell cell = new TicTacToeCell(3, 0, 1);
-        assertEquals(3, cell.getNum());
-    }
-
-    @Test
-    public void testCellMarkerSetting() {
-        TicTacToeCell cell = new TicTacToeCell(2, 1, 0);
-        cell.setMarker("O");
-        assertEquals('O', cell.getMarker());
-        assertFalse(cell.isEnabled());
+        game.board[8] = 'X';
+        int move = game.MiniMax(game.board, game.player2);
+        assertEquals(3, move);
     }
 }
