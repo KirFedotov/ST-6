@@ -15,7 +15,7 @@ public class AppTest {
 
     private static Game game;
 
-    @BeforeEach
+    @BeforeAll
     public void setUp() {
         game = new Game();
     }
